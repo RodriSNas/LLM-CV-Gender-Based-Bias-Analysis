@@ -1,6 +1,10 @@
 # **LLM‑Based CV Gender Bias Analysis**
 
-This repository contains the pipeline used to analyze **gender bias in CV evaluation by LLMs** (Claude and GPT). The structure is modular, but all experiments derive from the **main pipeline**, altering only inputs or prompts.
+This repository contains the pipeline used to investigate whether **prompting technique modulates gender-based scoring disparity** when Large Language Models (Claude Opus 4.5 and GPT-5.2) are used for automated CV screening. LLMs are increasingly adopted for CV evaluation for their consistency and scalability, but they can carry systematic demographic biases from their training and alignment, and gender signals cannot be fully neutralized even when explicit identifiers are removed.
+
+This pipeline evaluates 457 CV triplets (male, female, and neutral versions) across eight professional domains, under seven prompting techniques (Zero-Shot, Few-Shot, Chain-of-Thought, Thread-of-Thought, Self-Consistency, Least-to-Most, and Take-a-Step-Back) and five robustness checks (explicit pronouns, an explicit gender field, implicit hobbies cues, a coarser scoring scale, and an explicit fairness instruction). Bias is assessed through a multi-metric framework, mean score differentials, rank-based analysis, severity classification, score range sensitivity, and domain-level effects, alongside a human validation check and a formal cross-technique statistical comparison, to test whether the choice of prompting technique itself shapes the degree of gender bias produced.
+
+The structure is modular, but all experiments derive from the **main pipeline**, altering only inputs or prompts.
 
 \---
 
@@ -10,9 +14,10 @@ This repository contains the pipeline used to analyze **gender bias in CV evalua
 data/                 			→ original Cvs and JDs
 src/Preprocessing and CV Selection/     → scan gender signals + cleaning + injection
 src/JD selection/			→ leaning of JDs and top 10 selection by overlap mean rank
-src/Pipeline/         			→ main pipeline (Claude/GPT) and prompts (scoring scale, fairness instruction, etc.)
+src/Pipeline/         	→ main pipeline (Claude/GPT) and prompts (scoring scale, fairness instruction, etc.)
 src/Robustness Checks/       		→ reliability run + JD sensitivity
-src/Bias Analysis/        	 	→ analysis scripts
+src/Human Validation/          	→ CV sampling for manual scoring + human vs. LLM comparison (MAE, Spearman)
+src/Bias Analysis/        	 	→ analysis scripts, including the cross-technique Friedman/Wilcoxon test
 ```
 
 \---
@@ -73,7 +78,7 @@ All scripts require manual updating of **input/output paths**.
 
 These also use **the main pipeline**, but with:
 
-* **different prompts**, loaded from the `.txt` files in 
+* **different prompts**, loaded from the `.txt` files in
 * **different paths** to save the results
 
 > Experiment = main pipeline + alternative prompt
@@ -98,13 +103,25 @@ All scripts require manual updating of **input/output paths**.
 
 \---
 
-### **F. Analysis**
+### **F. Human Validation**
+
+1. **CV Sampling for Manual Scoring** Selects a subset of neutral-version CVs (stratified by domain and length) for the researcher to score manually, independently of any model output.
+2. **Human vs. LLM Comparison** Merges the human scores with the corresponding LLM scores for each of the seven techniques, for both models, and computes the Mean Absolute Error (MAE) and Spearman's rank correlation between human and LLM scores per technique, per model, as a concurrent validity check on the scoring instrument.
+
+
+
+All scripts require manual updating of **input/output paths**.
+
+\---
+
+### **G. Analysis**
 
 Dedicated scripts for:
 
 * Main experiments
 * Reliability
 * JD sensitivity
+* **Cross-technique comparison**: a Friedman test was applied to each condition, treating the rank gap per CV pair as a repeated measure across the seven techniques, followed where significant by Bonferroni-corrected pairwise Wilcoxon tests across all 21 technique pairs.
 
 They generate metrics, tables, and figures.
 
@@ -119,7 +136,7 @@ All scripts require manual updating of **input/output paths**.
 * The pipeline **is not executed automatically**; each step is manual.
 * The **input/output paths** must be adjusted for each experimente as referred throught this guide.
 * Claude and GPT have separate pipelines.
-* Alternative prompts are located in `Pipeline/` and are loaded by the main pipeline.
+* Alternative prompts are located in `Pipeline` and are loaded by the main pipeline.
 
 \---
 
